@@ -1,0 +1,104 @@
+svc = svm.SVC(C=500)
+svc.fit(X_train, y_train)
+svc.score(X_test, y_test)
+
+-------------------------------------SVM
+
+list_C = np.arange(500, 2000, 100) #100000
+list_C
+
+
+score_train = np.zeros(len(list_C))
+score_test = np.zeros(len(list_C))
+recall_test = np.zeros(len(list_C))
+precision_test= np.zeros(len(list_C))
+count = 0
+
+
+for C in list_C:
+    svc = svm.SVC(C=C)
+    svc.fit(X_train, y_train)
+    score_train[count] = svc.score(X_train, y_train)
+    score_test[count]= svc.score(X_test, y_test)
+    recall_test[count] = metrics.recall_score(y_test, svc.predict(X_test))
+    precision_test[count] = metrics.precision_score(y_test, svc.predict(X_test))
+    count = count + 1 
+
+
+
+models = pd.DataFrame({'C' :list_C, 
+              'Train Accuracy':score_train, 
+              'Test Accuracy' :score_test, 
+              'Test Recall': recall_test, 
+              'Test Precision': precision_test})
+models
+
+# matrix = np.matrix(np.c_[list_C, score_train, score_test, recall_test, precision_test])
+models = pd.DataFrame(data = matrix, columns = 
+             ['C', 'Train Accuracy', 'Test Accuracy', 'Test Recall', 'Test Precision'])
+models.head(n=10)
+
+best_index = models[models['Test Precision']==1]['Test Accuracy'].idxmax()
+best_index
+svc = svm.SVC(C=list_C[best_index])
+svc.fit(X_train, y_train)
+models.iloc[best_index, :]
+
+
+
+m_confusion_test = metrics.confusion_matrix(y_test, svc.predict(X_test))
+pd.DataFrame(data = m_confusion_test, columns = ['Predicted 0', 'Predicted 1'],
+            index = ['Actual 0', 'Actual 1'])
+
+
+
+-------------------------------------------Naive bayes
+
+list_alpha = np.arange(1/100000, 20, 0.11)
+score_train = np.zeros(len(list_alpha))
+score_test = np.zeros(len(list_alpha))
+recall_test = np.zeros(len(list_alpha))
+precision_test= np.zeros(len(list_alpha))
+count = 0
+for alpha in list_alpha:
+    bayes = naive_bayes.MultinomialNB(alpha=alpha)
+    bayes.fit(X_train, y_train)
+    score_train[count] = bayes.score(X_train, y_train)
+    score_test[count]= bayes.score(X_test, y_test)
+    recall_test[count] = metrics.recall_score(y_test, bayes.predict(X_test))
+    precision_test[count] = metrics.precision_score(y_test, bayes.predict(X_test))
+    count = count + 1 
+
+
+
+matrix = np.matrix(np.c_[list_alpha, score_train, score_test, recall_test, precision_test])
+models = pd.DataFrame(data = matrix, columns = 
+             ['alpha', 'Train Accuracy', 'Test Accuracy', 'Test Recall', 'Test Precision'])
+models.head(n=10)
+
+
+best_index = models['Test Precision'].idxmax()
+models.iloc[best_index, :]
+
+
+
+models[models['Test Precision']==1].head(n=5)
+
+
+
+best_index = models[models['Test Precision']==1]['Test Accuracy'].idxmax()
+bayes = naive_bayes.MultinomialNB(alpha=list_alpha[best_index])
+bayes.fit(X_train, y_train)
+models.iloc[best_index, :]
+
+
+best_index = models[models['Test Precision']==1]['Test Accuracy'].idxmax()
+bayes = naive_bayes.MultinomialNB(alpha=list_alpha[best_index])
+bayes.fit(X_train, y_train)
+models.iloc[best_index, :]
+
+
+
+m_confusion_test = metrics.confusion_matrix(y_test, bayes.predict(X_test))
+pd.DataFrame(data = m_confusion_test, columns = ['Predicted 0', 'Predicted 1'],
+            index = ['Actual 0', 'Actual 1'])
